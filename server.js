@@ -12,6 +12,7 @@ MongoClient.connect(connectionString, { useUnifiedTopology: true })
         quotesCollection = db.collection('quotes')
 
 
+        app.set('view engine', 'ejs')
 
 
 
@@ -29,9 +30,10 @@ MongoClient.connect(connectionString, { useUnifiedTopology: true })
             // res.sendFile(__dirname + '/index.html')
             db.collection('quotes').find().toArray()
                 .then(results => {
-                    console.log(results)
+                    res.render('index.ejs', { quotes: results })
                 })
                 .catch(error => console.error(error))
+
             // Note: __dirname is the current directory you're in. Try logging it and see what you get!
             // Mine was '/Users/zellwk/Projects/demo-repos/crud-express-mongo' for this app.
         })
