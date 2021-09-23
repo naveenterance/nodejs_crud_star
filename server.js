@@ -1,7 +1,7 @@
-const express = require('express');
-const bodyParser = require('body-parser');
+const express = require('express')
+const bodyParser = require('body-parser')
 const MongoClient = require('mongodb').MongoClient
-const app = express();
+const app = express()
 const connectionString = "mongodb+srv://yoda:force@cluster0.mlnry.mongodb.net/star-wars-quotes?retryWrites=true&w=majority"
 
 
@@ -12,30 +12,38 @@ MongoClient.connect(connectionString, { useUnifiedTopology: true })
         quotesCollection = db.collection('quotes')
 
 
+        // ========================
+        // Middlewares
+        // ========================
+
         app.set('view engine', 'ejs')
+        app.use(bodyParser.urlencoded({ extended: true }))
+        app.use(bodyParser.json())
+        app.use(express.static('public'))
 
 
 
+        // ========================
+        // Routes
+        // ========================
 
 
         app.listen(3000, function() {
             console.log('listening on 3000')
         })
 
-        app.use(bodyParser.urlencoded({ extended: true }))
 
 
 
         app.get('/', (req, res) => {
-            // res.sendFile(__dirname + '/index.html')
+
             db.collection('quotes').find().toArray()
                 .then(results => {
                     res.render('index.ejs', { quotes: results })
                 })
                 .catch(error => console.error(error))
 
-            // Note: __dirname is the current directory you're in. Try logging it and see what you get!
-            // Mine was '/Users/zellwk/Projects/demo-repos/crud-express-mongo' for this app.
+
         })
 
 
@@ -47,6 +55,30 @@ MongoClient.connect(connectionString, { useUnifiedTopology: true })
                 .catch(error => console.error(error))
         })
 
+
+        app.put('/quotes', (req, res) => {
+            quotesCollection.findOneAndUpdate({ name: 'guy' }, {
+                    $set: {
+                        name: req.body.name,
+                        quote: req.body.quote
+                    }
+                }, {
+                    upsert: true
+                })
+                .then(result => console.log(result))
+                .catch(error => console.error(error))
+        })
+
+        app.delete('/quotes', (req, res) => {
+            quotesCollection.deleteOne({ name: req.body.name })
+                .then(result => {
+                    if (result.deletedCount === 0) {
+                        return res.json('No quote to delete')
+                    }
+                    res.json(`Deleted Darth Vadar's quote`)
+                })
+                .catch(error => console.error(error))
+        })
 
 
     })
